@@ -7,3 +7,30 @@ span.error {
 	display: block;
 	margin-top: 15px;
 }
+
+label {
+	font-weight: bold;
+	margin-right: 10px;
+}
+
+#parse-analysis-result {
+	padding-top: 20px;
+}
+
+.xlsx-analysis-result {
+	border: 1px solid black;
+	border-spacing: 0;
+	border-collapse: collapse;
+	font-family: Arial;
+}
+
+.xlsx-analysis-result th, .xlsx-analysis-result td {
+	border: 1px solid grey;
+	padding: 5px;
+}
+
+.xlsx-analysis-result th {
+	background-color: lightgray;
+	font-weight: bold;
+}
+
