@@ -71,9 +71,10 @@ class ADXlsxParser
 
 					$xdata = [];
 					$html = "<table class='xlsx-analysis-result'>";
-					$html .= "<tr><th>Дата</th><th>Сумма</th><th>Уч</th><th>Контрагент</th><th>Описание</th><th>Доп.Описание</th></tr>";
+					$html .= "<tr><th>Дата</th><th>Код</th><th>Сумма</th><th>Уч</th><th>Контрагент</th><th>Описание</th><th>Доп.Описание</th></tr>";
 					$xdata[] = [
 						"Дата",
+						"Код",
 						"Сумма",
 						"Уч-к",
 						"Контрагент",
@@ -82,7 +83,7 @@ class ADXlsxParser
 					];
 					foreach ($data as $row) {
 						// if(count($row) == 9) {
-							if($row[5] == "76.09.1"&& in_array($row[4], ["50.01", "51"])) {
+							if(in_array($row[5], ["76.09.1", "76.09.2", "76.09.3", "76.09.4"]) && in_array($row[4], ["50.01", "51"])) {
 								// Date, Amount, Item, Employer, DocDescr, DocDescr2,
 								// Item 
 								$re = '/\(№*.+\)/m';
@@ -91,10 +92,29 @@ class ADXlsxParser
 								$re1 = '/(\p{Cyrillic}+\ (.)\.(.)\.)\ /u';
 								preg_match_all($re1, $row[3], $matches1, PREG_SET_ORDER, 0);
 								$participant = trim($matches1[0][0]);
-								$html .= "<tr><td>".$row[0]."</td><td>".number_format($row[6], 2)."</td><td>".$partition."</td><td>".$participant."</td><td>".$row[1]."</td><td>".$row[2]."</td></tr>";
+								switch ($row[5]) {
+									case '76.09.1':
+										$code = "ЧВ";
+										break;
+									case '76.09.2':
+										$code = "ЦВ";
+										break;
+									case '76.09.3':
+										$code = "ВВ";
+										break;
+									case '76.09.4':
+										$code = "Э";
+										break;
+									
+									default:
+										$code = "ЧВ";
+										break;
+								}
+								$html .= "<tr><td>".$row[0]."</td><td>".$code."</td><td>".number_format($row[6], 2)."</td><td>".$partition."</td><td>".$participant."</td><td>".$row[1]."</td><td>".$row[2]."</td></tr>";
 								$total += $row[6];
 								$xdata[] = [
 									$row[0],
+									$code,
 									number_format($row[6], 2),
 									$partition,
 									$participant,
@@ -106,9 +126,9 @@ class ADXlsxParser
 					}
 					$xdata[] = ['Итого', number_format($total, 2)];
 
-					$html .= "<tr><th>Итого</th><th>".number_format($total, 2)."</th><th colspan='4'></th></tr>";
+					$html .= "<tr><th>Итого</th><th>".number_format($total, 2)."</th><th colspan='5'></th></tr>";
 					$html .= "</table>";
-					$_SESSION['result'] = $html;
+					
 					if($_POST["export_file"]) {
 						// Export Excel
 						$spreadsheet = new Spreadsheet;
@@ -197,7 +217,10 @@ class ADXlsxParser
 				        	mkdir(plugin_dir_path( __FILE__ ).'../files'.DIRECTORY_SEPARATOR."export");
 				        }
 				        $writer->save(plugin_dir_path( __FILE__ ).'../files'.DIRECTORY_SEPARATOR."export".DIRECTORY_SEPARATOR."Документы_{$participant}.xlsx");
+				        $file_url = plugin_dir_url( __FILE__ ).'../files'.DIRECTORY_SEPARATOR."export".DIRECTORY_SEPARATOR."Документы_{$participant}.xlsx";
+				        $html = "<a class='button button-primaty' href='".$file_url."' target='_blank'>Download result</a>".$html;
 					}
+					$_SESSION['result'] = $html;
 				}
 			} else {
 				$_SESSION['result'] = "<span class='error'> The file is required.</span>";
